@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Flask SSE</title>
+</head>
+<body>
+  <h1>Update items without page refresh using Redis Cache Pub/Sub model</h1>
+  <label for="item">Menu Item:</label>
+  <input type="text" id="item" name="item">
+  <button type="submit" name="formBtn" onclick="addItem()">
+    Submit
+  </button>
+  <div>
+    <ul id="itemsList">
+
+    </ul>
+
+  </div>
+  <script>
+    function addItem() {
+       let itemVal = document.getElementById("item").value;
+       let url = "http://127.0.0.1:5000/menuItem" + "?item=" + itemVal
+       fetch(url, {
+  method: 'POST'}).then((e) => e.json()).then((e) => 
+       {
+     
+        
+        console.log(e)
+       
+       
+    })
+}
+    var source = new EventSource("http://127.0.0.1:5000/stream");
+    source.addEventListener('menuItem', function(event) {
+        var data = JSON.parse(event.data);
+        console.log("The server says " + data.message);
+
+        let url = "http://127.0.0.1:5000/menuItem" 
+        fetch(url, {
+  method: 'GET'}).then((e) => e.json()).then((e) => 
+       {
+     
+        itemsList = document.getElementById("itemsList")
+        itemsList.innerHTML = ""
+        for(var i in e.items){
+          var listItem = document.createElement("li")
+         
+          listItem.appendChild(document.createTextNode( e.items[i]));
+          itemsList.appendChild(listItem)
+          
+        }
+        
+        console.log(e)
+       
+       
+    })
+
+    }, false);
+    source.addEventListener('error', function(event) {
+      //  alert("Failed to connect to event stream. Is Redis running?");
+    }, false);
+  </script>
+</body>
+</html>
